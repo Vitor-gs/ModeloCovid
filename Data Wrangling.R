@@ -63,8 +63,6 @@ df_covid$DOSE_1_COV <- as.Date(df_covid$DOSE_1_COV, format = "%d/%m/%Y")
 df_covid$DOSE_2_COV <- as.Date(df_covid$DOSE_2_COV, format = "%d/%m/%Y")
 df_covid$DOSE_REF <- as.Date(df_covid$DOSE_REF, format = "%d/%m/%Y")
 df_covid$DOSE_2REF <- as.Date(df_covid$DOSE_2REF, format = "%d/%m/%Y")
-df_covid$CS_SEXO <- as.factor(df_covid$CS_SEXO)
-df_covid$SG_UF <- as.factor(df_covid$SG_UF)
 df_covid <- df_covid %>% mutate(
   CLASSI_FIN = NULL,
   IS_GESTANT = case_when(CS_GESTANT %in% c(1, 2, 3, 4) ~ 1, .default = 0),
@@ -95,29 +93,48 @@ df_covid <- df_covid %>% mutate(
   RENAL = NULL,
   IS_OBESIDADE = case_when(OBESIDADE == 1 ~ 1, .default = 0),
   OBESIDADE = NULL,
+  SEXO = CS_SEXO,
+  CS_SEXO = NULL,
+  RACA = CS_RACA,
+  CS_RACA = NULL,
+  UF = SG_UF,
+  SG_UF = NULL
 )
-df_covid$CS_RACA <- as.factor(df_covid$CS_RACA)
 df_covid$VACINA_COV <- as.factor(df_covid$VACINA_COV)
 df_covid$SUPORT_VEN <- as.factor(df_covid$SUPORT_VEN)
 df_covid$EVOLUCAO <- as.factor(df_covid$EVOLUCAO)
+df_covid$SEXO <- as.factor(df_covid$SEXO)
+df_covid$RACA <- as.factor(df_covid$RACA)
+df_covid$UF <- as.factor(df_covid$UF)
 
 ## Remover dados inconsistentes
-df_covid_limpo <- df_covid %>% filter(EVOLUCAO %in% c(1, 2, 3))
-df_covid_limpo <- df_covid_limpo %>% 
+df_covid_limpo <- df_covid %>% 
+  filter(EVOLUCAO %in% c(1, 2, 3)) %>%
   filter(SUPORT_VEN %in% c(1, 2, 3)) %>% 
   filter(VACINA_COV %in% c(1, 2)) %>% 
-  filter(CS_SEXO %in% c("F", "M")) %>% 
-  filter(CS_RACA %in% c(1, 2, 3, 4, 5)) %>% 
+  filter(SEXO %in% c("F", "M")) %>% 
+  filter(RACA %in% c(1, 2, 3, 4, 5)) %>% 
   filter(!is.na(DT_NASC)) %>% 
-  filter(!is.na(SG_UF)) %>%
-  filter(!(CS_SEXO == "M" & (IS_GESTANT == 1 | IS_PUERPERA == 1))) %>%
+  filter(!is.na(UF)) %>%
+  filter(!(SEXO == "M" & (IS_GESTANT == 1 | IS_PUERPERA == 1))) %>%
   filter((IS_GESTANT + IS_PUERPERA) < 2) %>%
   filter((
     IS_NOSOCOMIAL + IS_CARDIOPATI + IS_HEMATOLOGIL + IS_SIND_DOWN + 
       IS_HEPATICA + IS_ASMA + IS_DIABETES + IS_NEUROLOGIC + IS_PNEUMOPATI + 
-      IS_IMUNODEPRE + IS_RENAL + IS_OBESIDADE) < 9)
-df_covid_limpo$CS_SEXO <- droplevels(df_covid_limpo$CS_SEXO)
-df_covid_limpo$CS_RACA <- droplevels(df_covid_limpo$CS_RACA)
+      IS_IMUNODEPRE + IS_RENAL + IS_OBESIDADE) < 9) %>%
+  filter(!(VACINA_COV == 1 & 
+             is.na(DOSE_1_COV) & is.na(LOTE_1_COV) & 
+             is.na(DOSE_2_COV) & is.na(LOTE_2_COV) & 
+             is.na(DOSE_REF) & is.na(LOTE_REF) & 
+             is.na(DOSE_2REF) & is.na(LOTE_REF2))) %>%
+  filter(!(VACINA_COV == 2 & (
+    !is.na(DOSE_1_COV) | !is.na(LOTE_1_COV) | 
+      !is.na(DOSE_2_COV) | !is.na(LOTE_2_COV) | 
+      !is.na(DOSE_REF) | !is.na(LOTE_REF) | 
+      !is.na(DOSE_2REF) | !is.na(LOTE_REF2))))
+
+df_covid_limpo$SEXO <- droplevels(df_covid_limpo$SEXO)
+df_covid_limpo$RACA <- droplevels(df_covid_limpo$RACA)
 df_covid_limpo$SUPORT_VEN <- droplevels(df_covid_limpo$SUPORT_VEN)
 df_covid_limpo$EVOLUCAO <- droplevels(df_covid_limpo$EVOLUCAO)
 df_covid_limpo$IS_GESTANT <- as.factor(df_covid_limpo$IS_GESTANT)
@@ -137,22 +154,36 @@ df_covid_limpo$IS_OBESIDADE <- as.factor(df_covid_limpo$IS_OBESIDADE)
 
 ## Explicitar raças
 df_covid_limpo <- df_covid_limpo %>% mutate(
-  CS_RACA = case_when(
-    CS_RACA == 1 ~ "Branca",
-    CS_RACA == 2 ~ "Preta",
-    CS_RACA == 3 ~ "Amarela",
-    CS_RACA == 4 ~ "Parda",
-    CS_RACA == 5 ~ "Indígena"
+  RACA = case_when(
+    RACA == 1 ~ "Branca",
+    RACA == 2 ~ "Preta",
+    RACA == 3 ~ "Amarela",
+    RACA == 4 ~ "Parda",
+    RACA == 5 ~ "Indígena"
     )
 )
-df_covid_limpo$CS_RACA <- as.factor(df_covid_limpo$CS_RACA)
+df_covid_limpo$RACA <- as.factor(df_covid_limpo$RACA)
 
 ## Coluna Número de doses recebidas da vacina
 df_analise <- df_covid_limpo %>% mutate(
-  VACINA_1 = case_when(VACINA_COV == 1 | !is.na(DOSE_1_COV) | !is.na(LOTE_1_COV) ~ 1, .default = 0),
-  VACINA_2 = case_when(!is.na(DOSE_2_COV) | !is.na(LOTE_2_COV) ~ 1, .default = 0),
-  VACINA_REF = case_when(!is.na(DOSE_REF) | !is.na(LOTE_REF) ~ 1, .default = 0),
-  VACINA_2REF = case_when(!is.na(DOSE_2REF) | !is.na(LOTE_REF2) ~ 1, .default = 0),
+  VACINA_1 = case_when(
+    !is.na(DOSE_1_COV) | !is.na(LOTE_1_COV) | 
+      !is.na(DOSE_2_COV) | !is.na(LOTE_2_COV) | 
+      !is.na(DOSE_REF) | !is.na(LOTE_REF) | 
+      !is.na(DOSE_2REF) | !is.na(LOTE_REF2) ~ 1, 
+    .default = 0),
+  VACINA_2 = case_when(
+    !is.na(DOSE_2_COV) | !is.na(LOTE_2_COV) |
+      !is.na(DOSE_REF) | !is.na(LOTE_REF) | 
+      !is.na(DOSE_2REF) | !is.na(LOTE_REF2) ~ 1, 
+    .default = 0),
+  VACINA_REF = case_when(
+    !is.na(DOSE_REF) | !is.na(LOTE_REF) | 
+      !is.na(DOSE_2REF) | !is.na(LOTE_REF2) ~ 1, 
+    .default = 0),
+  VACINA_2REF = case_when(
+    !is.na(DOSE_2REF) | !is.na(LOTE_REF2) ~ 1, 
+    .default = 0),
   VACINA_COV = NULL, 
   DOSE_1_COV = NULL, 
   DOSE_2_COV = NULL,
@@ -212,4 +243,52 @@ save(df_analise, file = "covid_data.Rdata")
 # Visualização da base de dados
 summary(df_analise)
 
+df_reduced <- df_analise %>%
+  mutate(
+    UF = case_when(
+      UF == "SP" ~ "SP",
+      UF == "MG" ~ "MG",
+      UF == "RS" ~ "RS",
+      UF == "PR" ~ "PR",
+      UF == "SC" ~ "SC",
+      UF == "RJ" ~ "RJ",
+      UF == "GO" ~ "GO",
+      .default = "Outros"
+    ),
+    IDADE = case_when(
+      IDADE == "[0, 15)" ~ "0-15",
+      IDADE == "[15, 30)" ~ "15-30",
+      IDADE == "[30, 45)" ~ "30-45",
+      IDADE == "[45, 60)" ~ "45-60",
+      IDADE == "[60, 75)" ~ "60-75",
+      .default = "75+"
+    ),
+    RACA = case_when(
+      RACA == "Branca" ~ "Branca",
+      RACA == "Parda" ~ "Parda",
+      RACA == "Preta" ~ "Preta",
+      .default = "I+A"
+    ),
+  )
 
+df_graph <- df_reduced %>% 
+  pivot_longer(cols = everything()) %>% 
+  group_by(name, value) %>% 
+  summarise(n = n()) %>% 
+  mutate(rank = dense_rank(desc(n)))
+
+order_name <- c(
+  "OBITO", "VENT_INV", "VENT_NAO_INV", "IDADE", "VACINA_DOSES", "UF", "RACA", 
+  "SEXO", "IS_OBESIDADE", "IS_RENAL", "IS_IMUNODEPRE", "IS_PNEUMOPATI", 
+  "IS_NEUROLOGIC", "IS_DIABETES", "IS_ASMA", "IS_HEPATICA", "IS_SIND_DOWN",
+  "IS_HEMATOLOGIL", "IS_CARDIOPATI", "IS_PUERPERA", "IS_NOSOCOMIAL", "IS_GESTANT")
+
+df_graph %>% 
+  ggplot(aes(x = n, y = factor(name, levels = order_name), fill = fct_rev(as.factor(rank)))) +
+  geom_col(position = "stack", width = 0.85) +
+  scale_x_continuous(limits = c(-1500, 203000), expand = c(0, 0)) + 
+  scale_fill_manual(values = c("#FFFFFF", "#F7FBFF", "#DEEBF7", "#C6DBEF", "#9ECAE1", "#6BAED6", "#4292C6", "#2171B5")) +
+  labs(x = "Quantidade de pacientes", y = NULL, title = NULL) +
+  theme(legend.position = "none") +
+  geom_text(aes(label = value), position = position_stack(vjust = 0.5)) + 
+  geom_hline(yintercept=3.5, linetype="dashed", color = "red", size=0.85)

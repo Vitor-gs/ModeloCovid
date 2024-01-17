@@ -1,11 +1,10 @@
 ##################################################################################
 #                  INSTALAÇÃO E CARREGAMENTO DE PACOTES NECESSÁRIOS              #
 ##################################################################################
-#Pacotes utilizados
+# Pacotes utilizados
 pacotes <- c("plotly","tidyverse","knitr","kableExtra","fastDummies","rgl","car",
              "reshape2","jtools","stargazer","lmtest","caret","pROC","ROCR","nnet",
              "magick","cowplot","globals","haven", "data.table")
-
 
 options(rgl.debug = TRUE)
 
@@ -29,7 +28,7 @@ summary(df_analise)
 
 # Dummizando todas as variáveis
 df_dummies <- df_analise %>% dummy_columns(select_columns = c(
-  "CS_SEXO", "CS_RACA", "SG_UF", "IS_GESTANT", "IS_NOSOCOMIAL", "IS_PUERPERA",
+  "SEXO", "RACA", "UF", "IS_GESTANT", "IS_NOSOCOMIAL", "IS_PUERPERA",
   "IS_CARDIOPATI", "IS_HEMATOLOGIL", "IS_SIND_DOWN", "IS_HEPATICA", "IS_ASMA",
   "IS_DIABETES", "IS_NEUROLOGIC", "IS_PNEUMOPATI", "IS_IMUNODEPRE", "IS_RENAL",
   "IS_OBESIDADE", "VACINA_DOSES", "IDADE"),
