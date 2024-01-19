@@ -43,6 +43,7 @@ modelo_obito <- glm(formula = OBITO ~ . -VENT_NAO_INV - VENT_INV,
                     family = "binomial")
 summary(modelo_obito)
 logLik(modelo_obito)
+summ(modelo_obito, confint = T, digits = 3, ci.width = .95)
 
 ## Procedimento Stepwise
 step_obito <- step(object = modelo_obito,
@@ -75,11 +76,11 @@ dados_plotagem <- cbind.data.frame(cutoffs, especificidade, sensitividade)
 ggplotly(dados_plotagem %>%
            ggplot(aes(x = cutoffs, y = especificidade)) +
            geom_line(aes(color = "Especificidade"),
-                     size = 1) +
+                     linewidth = 1) +
            geom_point(color = "#95D840FF",
                       size = 1.9) +
            geom_line(aes(x = cutoffs, y = sensitividade, color = "Sensitividade"),
-                     size = 1) +
+                     linewidth = 1) +
            geom_point(aes(x = cutoffs, y = sensitividade),
                       color = "#440154FF",
                       size = 1.9) +
@@ -99,11 +100,8 @@ ggplot() +
             color = "darkorchid", linewidth = 2) +
   labs(x = "1 - Especificidade",
        y = "Sensitividade",
-       title = paste("Área abaixo da curva:",
-                     round(ROC$auc, 4),
-                     "|",
-                     "Coeficiente de Gini:",
-                     round((ROC$auc[1] - 0.5) / 0.5, 4))) +
+       title = paste("OBITO - Área abaixo da curva ROC:",
+                     round(ROC$auc, 4))) +
   theme(panel.background = element_rect(NA),
         panel.border = element_rect(color = "black", fill = NA),
         legend.text = element_text(size = 10),

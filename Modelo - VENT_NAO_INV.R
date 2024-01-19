@@ -43,6 +43,7 @@ modelo_vent_nao_inv <- glm(formula = VENT_NAO_INV ~ . -OBITO - VENT_INV,
                            family = "binomial")
 summary(modelo_vent_nao_inv)
 logLik(modelo_vent_nao_inv)
+summ(modelo_vent_nao_inv, confint = T, digits = 3, ci.width = .95)
 
 ## Procedimento Stepwise
 step_vent_nao_inv <- step(object = modelo_vent_nao_inv,
@@ -56,16 +57,16 @@ lrtest(modelo_vent_nao_inv, step_vent_nao_inv)
 
 ## Matriz de confusão
 confusionMatrix(table(predict(step_vent_nao_inv, type = "response") >= 0.5, 
-                      df_analise$OBITO == 1)[2:1, 2:1])
+                      df_analise$VENT_NAO_INV == 1)[2:1, 2:1])
 
 df_predictions <- df_analise %>% mutate(
-  PRED_OBITO_MODEL = modelo_vent_nao_inv$fitted.values,
-  PRED_OBITO_STEP = step_vent_nao_inv$fitted.values,
+  PRED_VENT_NAO_INV_MODEL = modelo_vent_nao_inv$fitted.values,
+  PRED_VENT_NAO_INV_STEP = step_vent_nao_inv$fitted.values,
 )
 
 ## Construção curva ROC
 predicoes <- prediction(predictions = step_vent_nao_inv$fitted.values, 
-                        labels = df_analise$OBITO)
+                        labels = df_analise$VENT_NAO_INV)
 dados_curva_roc <- performance(predicoes, measure = "sens")
 sensitividade <- dados_curva_roc@y.values[[1]]
 especificidade <- performance(predicoes, measure = "spec") 
@@ -90,7 +91,7 @@ ggplotly(dados_plotagem %>%
            theme_bw())
 
 ## Plotagem ROC
-ROC <- roc(response = df_analise$OBITO, 
+ROC <- roc(response = df_analise$VENT_NAO_INV, 
            predictor = step_vent_nao_inv$fitted.values)
 ggplot() +
   geom_segment(aes(x = 0, xend = 1, y = 0, yend = 1),
@@ -99,11 +100,8 @@ ggplot() +
             color = "darkorchid", linewidth = 2) +
   labs(x = "1 - Especificidade",
        y = "Sensitividade",
-       title = paste("Área abaixo da curva:",
-                     round(ROC$auc, 4),
-                     "|",
-                     "Coeficiente de Gini:",
-                     round((ROC$auc[1] - 0.5) / 0.5, 4))) +
+       title = paste("VENT_NAO_INV - Área abaixo da curva ROC:",
+                     round(ROC$auc, 4))) +
   theme(panel.background = element_rect(NA),
         panel.border = element_rect(color = "black", fill = NA),
         legend.text = element_text(size = 10),
