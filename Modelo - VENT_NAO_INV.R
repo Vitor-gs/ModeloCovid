@@ -4,7 +4,7 @@
 # Pacotes utilizados
 pacotes <- c("plotly","tidyverse","knitr","kableExtra","fastDummies","rgl","car",
              "reshape2","jtools","stargazer","lmtest","caret","pROC","ROCR","nnet",
-             "magick","cowplot","globals","haven", "data.table")
+             "magick","cowplot","globals","haven", "data.table", "hnp", "CIplot")
 
 
 options(rgl.debug = TRUE)
@@ -107,3 +107,28 @@ ggplot() +
         legend.text = element_text(size = 10),
         legend.title = element_text(size = 10)
   )
+
+## Half-normal Plot
+hnp(step_vent_nao_inv, 
+    pch=4,
+    main="VENT_NAO_INV - Binominal",
+    xlab="Half-normal Scores",
+    ylab="Deviance Residuals")
+
+# Teste plot modelo
+# export_summs(modelo_vent_nao_inv, error_format = "[{conf.low}, {conf.high}]")
+# s <- summ(step_vent_nao_inv, confint = T, digits = 3, ci.width = .95)
+# plot_coefs(s)
+
+
+## Odd Ratios
+require(graphics)
+require(MASS)
+OR1 <- ORci(step_vent_nao_inv)
+par(mar = c(4.5, 9.5, 2, 1))
+CIplot(OR1, las=1, pcol="red", pcolbg="red", cex.axis=1.5)
+abline(h=49.5, col="grey", lty=2)
+abline(h=46.5, col="grey", lty=2)
+abline(h=21.5, col="grey", lty=2)
+abline(h=8.5, col="grey", lty=2)
+abline(h=5.5, col="grey", lty=2)
